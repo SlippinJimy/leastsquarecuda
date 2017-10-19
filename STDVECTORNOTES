@@ -14,3 +14,29 @@ using vector = stds:: vector <T, std::pmr::polymorphic_allocator <T> >;
 
 std::vector is a sequence container that encapsulates dynamic size arrays.
 std::pmr::vector is an alias template that uses a polymorphic allocator
+
+THe elements are stored contiguously, which means that elements can be accessed not only through iretators, but also using offsets to regular pointers to elements.
+This means that a pointer to an elements of a vector may be passed to any function that expects a pointer to an elements of an array.
+
+Vectors usually occupy more space than static arrays, more memory is allocated to handle future growth.
+This way a vector does not need to reallocate each time an element is inserted, but only when additional memory is exhausted.
+
+Total amount of memory can be queried using capacity().
+
+Extra memory can be release via shrink_to_fit()
+
+The reserve() function can be used to eliminate reallocations if the number of elements is know beforehand.
+
+Random acccess - constant o(1)
+insertion or removal of elements at end of array o(1)
+insertion or removal of elements o(n)
+
+#include <iostream>
+#include <vector>
+
+int main()
+{
+
+std
+
+}
