@@ -1,0 +1,16 @@
+std::Vector
+
+Template<
+class T,
+class Allocator = std:: allocator<T>
+class vector;
+
+namespace pmr {
+
+template <class T>
+using vector = stds:: vector <T, std::pmr::polymorphic_allocator <T> >;
+}
+
+
+std::vector is a sequence container that encapsulates dynamic size arrays.
+std::pmr::vector is an alias template that uses a polymorphic allocator

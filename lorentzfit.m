@@ -5,14 +5,14 @@ function varargout = lorentzfit(x,y,varargin)
 %   found using LSQCURVEFIT. The function Y(X) is fit by the model:
 %       YPRIME(X) = P1./((X - P2).^2 + P3) + C.
 %
-%   [YPRIME PARAMS RESNORM RESIDUAL] = LORENTZFIT(X,Y) returns YPRIME(X) 
+%   [YPRIME PARAMS RESNORM RESIDUAL] = LORENTZFIT(X,Y) returns YPRIME(X)
 %   values in addition to fit-parameters PARAMS = [P1 P2 P3 C]. The RESNORM
 %   and RESIDUAL outputs from LSQCURVEFIT are also returned.
 %
 %   [...] = LORENTZFIT(X,Y,P0) can be used to provide starting
 %   values (P0 = [P01 P02 P03 C0]) for the parameters in PARAMS.
 %
-%   [...] = LORENTZFIT(X,Y,P0,BOUNDS) may be used to define lower 
+%   [...] = LORENTZFIT(X,Y,P0,BOUNDS) may be used to define lower
 %   and upper bounds for the possbile values for each parameter in PARAMS.
 %       BOUNDS = [LB1 LB2 LB3 LB4;
 %                 UB1 UB2 UB3 UB4].
@@ -21,20 +21,20 @@ function varargout = lorentzfit(x,y,varargin)
 %   be used. The default bounds for all parameters are (-Inf,Inf).
 %
 %   [...] = LORENTZFIT(X,Y,P0,BOUNDS,NPARAMS) may be used to specify the
-%   number of parameters used in the Lorentzian fitting function. The 
-%   number of parameters defined in P0 and BOUNDS must match the function 
-%   specified by NPARAMS. If the user does not wish to manually define 
-%   values for P0 or BOUNDS, both may be enetered as empty matricies: 
+%   number of parameters used in the Lorentzian fitting function. The
+%   number of parameters defined in P0 and BOUNDS must match the function
+%   specified by NPARAMS. If the user does not wish to manually define
+%   values for P0 or BOUNDS, both may be enetered as empty matricies:
 %   P0 = []; BOUNDS = [].
 %
 %   -NPARAMS options
-%       
+%
 %           '1'     - Single parameter Lorentzian (no constant term)
 %                     L1(X) = 1./(P1(X.^2 + 1))
 %
 %           '1c'    - Single parameter Lorentzian (with constant term)
 %                     L1C(X) = 1./(P1(X.^2 + 1)) + C
-% 
+%
 %           '2'     - Two parameter Lorentzian (no constant term)
 %                     L2(X) = P1./(X.^2 + P2)
 %
@@ -54,12 +54,12 @@ function varargout = lorentzfit(x,y,varargin)
 %       OPTIONS = optimset('PARAM1',VALUE1,'PARAM2',VALUE2,...);
 %
 %   See the help documentation for OPTIMSET for more details.
-%   
-% 
+%
+%
 %   X and Y must be the same size, numeric, and non-complex. P0 and BOUNDS
 %   must also be numeric and non-complex. NPARAMS is a character array.
 %
-%   Examples: 
+%   Examples:
 %       x = -16:0.1:35;
 %       y = 19.4./((x - 7).^2 + 15.8) + randn(size(x))./10;
 %       [yprime1 params1 resnorm1 residual1] = lorentzfit(x,y,[20 10 15 0]);
@@ -72,13 +72,8 @@ function varargout = lorentzfit(x,y,varargin)
 %
 %   See also: lsqcurvefit.
 
-% Jered R Wells
-% 11/15/11
-% jered [dot] wells [at] duke [dot] edu
-%
-% v1.6 (2015/07/31)
-%
-% REF: http://www.home.uos.de/kbetzler/notes/fitp.pdf
+
+
 %
 %   UPDATES
 %   v1.5 - 2015/07/22 - jrw
@@ -98,7 +93,7 @@ inputcheck(y,{'numeric'},{'real','nonnan','nonempty','finite','size',size(x)},fn
 % Set defaults for optional inputs
 p3 = ((max(x(:))-min(x(:)))./10).^2;
 p2 = (max(x(:))+min(x(:)))./2;
-p1 = max(y(:)).*p3; 
+p1 = max(y(:)).*p3;
 c = min(y(:));
 
 optargs = {[],[],'3c',optimset('TolFun',max(mean(y(:))*1e-6,1e-15),'TolX',max(mean(x(:))*1e-6,1e-15))};
@@ -106,7 +101,7 @@ optargs = {[],[],'3c',optimset('TolFun',max(mean(y(:))*1e-6,1e-15),'TolX',max(me
 numvarargs = length(varargin);
 for ii = 1:numvarargs; if isempty(varargin{ii}); varargin{ii} = optargs{ii}; end; end
 
-% Now put these defaults into the valuesToUse cell array, 
+% Now put these defaults into the valuesToUse cell array,
 % and overwrite the ones specified in varargin.
 optargs(1:numvarargs) = varargin;
 % or ...
@@ -137,19 +132,19 @@ switch lower(nparams)
         if isempty(p0);
             p1 = max(y(:)); p0 = p1;
         elseif numel(p0)~=1
-            error 'P0 must be empty or have one element for NPARAMS = ''1'''; 
+            error 'P0 must be empty or have one element for NPARAMS = ''1''';
         end
 
         if isempty(bounds)
             lb = -Inf; ub = Inf;
-        elseif ~all(size(bounds)==[2 1]) 
+        elseif ~all(size(bounds)==[2 1])
             error 'BOUNDS must be empty or it must be a 2x1 matrix for NPARAMS = ''1''';
         else
             lb = bounds(1,:); ub = bounds(2,:);
         end
 
         if any(lb>=ub)
-            error 'Lower bounds must be less than upper bounds'; 
+            error 'Lower bounds must be less than upper bounds';
         end
 
         [params,resnorm,residual] = lsqcurvefit(@lfun1,p0,x,y,lb,ub,options);
@@ -160,19 +155,19 @@ switch lower(nparams)
         if isempty(p0);
             p1 = max(y(:)); p0 = [p1 c];
         elseif numel(p0)~=2
-            error 'P0 must be empty or have two elements for NPARAMS = ''1c'''; 
+            error 'P0 must be empty or have two elements for NPARAMS = ''1c''';
         end
 
         if isempty(bounds)
             lb = [-Inf,-Inf]; ub = [Inf,Inf];
-        elseif ~all(size(bounds)==[2 2]) 
+        elseif ~all(size(bounds)==[2 2])
             error 'BOUNDS must be empty or it must be a 2x2 matrix for NPARAMS = ''1c''';
         else
             lb = bounds(1,:); ub = bounds(2,:);
         end
 
         if any(lb>=ub)
-            error 'Lower bounds must be less than upper bounds'; 
+            error 'Lower bounds must be less than upper bounds';
         end
 
         [params,resnorm,residual] = lsqcurvefit(@lfun1c,p0,x,y,lb,ub,options);
@@ -180,23 +175,23 @@ switch lower(nparams)
     case '2'
         % Define P0, LB, UB
         if isempty(p0);
-            p2 = ((max(x(:))-min(x(:)))./10).^2; 
+            p2 = ((max(x(:))-min(x(:)))./10).^2;
             p1 = max(y(:)).*p2;
             p0 = [p1 p2];
         elseif numel(p0)~=2
-            error 'P0 must be empty or have two elements for NPARAMS = ''2'''; 
+            error 'P0 must be empty or have two elements for NPARAMS = ''2''';
         end
 
         if isempty(bounds)
             lb = [-Inf,-Inf]; ub = [Inf,Inf];
-        elseif ~all(size(bounds)==[2 2]) 
+        elseif ~all(size(bounds)==[2 2])
             error 'BOUNDS must be empty or it must be a 2x2 matrix for NPARAMS = ''2''';
         else
             lb = bounds(1,:); ub = bounds(2,:);
         end
 
         if any(lb>=ub)
-            error 'Lower bounds must be less than upper bounds'; 
+            error 'Lower bounds must be less than upper bounds';
         end
 
         [params,resnorm,residual] = lsqcurvefit(@lfun2,p0,x,y,lb,ub,options);
@@ -204,23 +199,23 @@ switch lower(nparams)
     case '2c'
         % Define P0, LB, UB
         if isempty(p0);
-            p2 = ((max(x(:))-min(x(:)))./10).^2; 
+            p2 = ((max(x(:))-min(x(:)))./10).^2;
             p1 = max(y(:)).*p2;
             p0 = [p1 p2 c];
         elseif numel(p0)~=3
-            error 'P0 must be empty or have three elements for NPARAMS = ''2c'''; 
+            error 'P0 must be empty or have three elements for NPARAMS = ''2c''';
         end
 
         if isempty(bounds)
             lb = [-Inf,-Inf,-Inf]; ub = [Inf,Inf,Inf];
-        elseif ~all(size(bounds)==[2 3]) 
+        elseif ~all(size(bounds)==[2 3])
             error 'BOUNDS must be empty or it must be a 2x3 matrix for NPARAMS = ''2c''';
         else
             lb = bounds(1,:); ub = bounds(2,:);
         end
 
         if any(lb>=ub)
-            error 'Lower bounds must be less than upper bounds'; 
+            error 'Lower bounds must be less than upper bounds';
         end
 
         [params,resnorm,residual] = lsqcurvefit(@lfun2c,p0,x,y,lb,ub,options);
@@ -230,19 +225,19 @@ switch lower(nparams)
         if isempty(p0);
             p0 = [p1 p2 p3];
         elseif numel(p0)~=3
-            error 'P0 must be empty or have three elements for NPARAMS = ''3'''; 
+            error 'P0 must be empty or have three elements for NPARAMS = ''3''';
         end
 
         if isempty(bounds)
             lb = [-Inf,-Inf,-Inf]; ub = [Inf,Inf,Inf];
-        elseif ~all(size(bounds)==[2 3]) 
+        elseif ~all(size(bounds)==[2 3])
             error 'BOUNDS must be empty or it must be a 2x3 matrix for NPARAMS = ''3''';
         else
             lb = bounds(1,:); ub = bounds(2,:);
         end
 
         if any(lb>=ub)
-            error 'Lower bounds must be less than upper bounds'; 
+            error 'Lower bounds must be less than upper bounds';
         end
 
         [params,resnorm,residual] = lsqcurvefit(@lfun3,p0,x,y,lb,ub,options);
@@ -252,18 +247,18 @@ switch lower(nparams)
         if isempty(p0);
             p0 = [p1 p2 p3 c];
         elseif numel(p0)~=4
-            error 'P0 must be empty or have four elements for NPARAMS = ''3c'''; 
+            error 'P0 must be empty or have four elements for NPARAMS = ''3c''';
         end
 
         if isempty(bounds)
-        elseif ~all(size(bounds)==[2 4]) 
+        elseif ~all(size(bounds)==[2 4])
             error 'BOUNDS must be empty or it must be a 2x4 matrix for NPARAMS = ''3c''';
         else
             lb = bounds(1,:); ub = bounds(2,:);
         end
 
         if any(lb>=ub)
-            error 'Lower bounds must be less than upper bounds'; 
+            error 'Lower bounds must be less than upper bounds';
         end
 
         [params,resnorm,residual] = lsqcurvefit(@lfun3c,p0,x,y,lb,ub,options);
@@ -303,13 +298,13 @@ F = p(1)./((x-p(2)).^2+p(3)) + p(4);
 end % LFUN3C
 
 function varargout = inputcheck(A,varargin)
-% INPUTCHECK checks the validity of input array with VALIDATEATTRIBUTES 
+% INPUTCHECK checks the validity of input array with VALIDATEATTRIBUTES
 %
 % INPUTCHECK(A,CLASSES,ATTRIBUTES) validates that array A belongs
 % to at least one of the specified CLASSES and has all of the specified
 % ATTRIBUTES. If A does not meet the criteria, MATLAB issues a formatted
 % error message. INPUTCHECK(A,CLASSES,ATTRIBUTES) is equivalent to
-% VALIDATEATTRIBUTES(A,CLASSES,ATTRIBUTES) with the exception that custom 
+% VALIDATEATTRIBUTES(A,CLASSES,ATTRIBUTES) with the exception that custom
 % CLASSES and ATTRIBUTES can be easily implemented by editing the function.
 %
 % Some additional input error-checking is also provided. Also, empty arrays
@@ -318,26 +313,26 @@ function varargout = inputcheck(A,varargin)
 % INPUTCHECK(A,CLASSES,ATTRIBUTES,ARGINDEX) includes the
 % position of the input in your function argument list as part of any
 % generated error messages.
-% 
+%
 % INPUTCHECK(A,CLASSES,ATTRIBUTES,FUNCNAME) includes the
 % specified function name in generated error identifiers.
-% 
+%
 % INPUTCHECK(A,CLASSES,ATTRIBUTES,FUNCNAME,VARNAME) includes the
 % specified variable name in generated error messages.
-% 
+%
 % INPUTCHECK(A,CLASSES,ATTRIBUTES,FUNCNAME,VARNAME,ARGINDEX)
 % includes the specified information in the generated error messages or
 % identifiers.
 %
 % [V,ME] = INPUTCHECK(A,CLASSES,ATTRIBUTES,FUNCNAME,VARNAME,ARGINDEX,VERBOSE)
-% toggles the error message generation state. VERBOSE = TRUE will produce 
-% error messages which halt function execution and return control to the 
-% command line if array A is not valid. Otherwise, the validity state V 
+% toggles the error message generation state. VERBOSE = TRUE will produce
+% error messages which halt function execution and return control to the
+% command line if array A is not valid. Otherwise, the validity state V
 % will be output as logical TRUE and the error catch variable ME is empty.
-% VERBOSE = FALSE will output validity V as either TRUE or FALSE in 
-% addition to reporting errors in ME without halting function execution 
+% VERBOSE = FALSE will output validity V as either TRUE or FALSE in
+% addition to reporting errors in ME without halting function execution
 % when A is not valid. By default, VERBOSE = TRUE.
-% 
+%
 %   Input Arguments:
 %
 %   A          Any class of array.
@@ -346,12 +341,12 @@ function varargout = inputcheck(A,varargin)
 %              For example, if CLASSES = {'logical','cell'}, A must be a
 %              logical array or a cell array. The string 'numeric' is an
 %              abbreviation for the classes uint8, uint16, uint32, uint64,
-%              int8, int16, int32, int64, single, double. CLASSES may 
+%              int8, int16, int32, int64, single, double. CLASSES may
 %              include MATLAB built-in or custom classes:
 %
-%             'numeric'         Any value for which the isnumeric function 
-%                               returns true, including int8, int16, int32, 
-%                               int64, uint8, uint16, uint32, uint64, 
+%             'numeric'         Any value for which the isnumeric function
+%                               returns true, including int8, int16, int32,
+%                               int64, uint8, uint16, uint32, uint64,
 %                               single, or double.
 %             'single'          Single-precision number.
 %             'double'          Double-precision number.
@@ -369,7 +364,7 @@ function varargout = inputcheck(A,varargin)
 %             'cell'            Cell array.
 %             'function_handle'	Scalar function handle.
 %
-%             Examples: 
+%             Examples:
 %                   % Define CLASSES using the following syntax
 %                   classes = {};
 %                   classes = {'double'};
@@ -380,17 +375,17 @@ function varargout = inputcheck(A,varargin)
 %              A must contain only real and finite values.
 %
 %              Supported attributes include:
-%   
+%
 %             Attributes that describe the size and shape of array A:
-%             '2d'              Two-dimensional array, including scalars, 
+%             '2d'              Two-dimensional array, including scalars,
 %                               vectors, matrices, and empty arrays.
 %             'column'          Column vector, N-by-1.
 %             'row'             Row vector, 1-by-N.
 %             'scalar'          Scalar value, 1-by-1.
 %             'vector'          Row or column vector, or a scalar value.
-%             'size', [d1,...,dN]	Array with dimensions d1-by-...-by-dN. 
-%                                   If you do not want to check a 
-%                                   particular dimension, specify NaN for 
+%             'size', [d1,...,dN]	Array with dimensions d1-by-...-by-dN.
+%                                   If you do not want to check a
+%                                   particular dimension, specify NaN for
 %                                   that dimension, such as [3,4,NaN,2].
 %               'ndims', N      Array with N dimensions.
 %             'numel', N        Array with N elements.
@@ -411,10 +406,10 @@ function varargout = inputcheck(A,varargin)
 %             '<', N            All values are less than N.
 %             '<=', N           All values are less than or equal to N.
 %
-%             Attributes that check types of values in A, where A is a 
+%             Attributes that check types of values in A, where A is a
 %             numeric or logical array:
 %             'binary'          Array of ones and zeros.
-%             'even'            All elements are even integers 
+%             'even'            All elements are even integers
 %                               (includes zero).
 %             'odd'             All elements are odd integers.
 %             'integer'         All elements are integer-valued.
@@ -425,13 +420,13 @@ function varargout = inputcheck(A,varargin)
 %             'nonzero'         All elements are nonzero.
 %             'positive'        All elements are positive.
 %
-%              Some attributes also require numeric values. For those 
-%              attributes, the numeric value or vector must immediately 
+%              Some attributes also require numeric values. For those
+%              attributes, the numeric value or vector must immediately
 %              follow the attribute name string. For example,
 %              {'>=', 5, '<=', 10, size, [3 4 2]} checks that all
 %              values of A are between 5 and 10, and that A is 3-by-4-by-2.
 %
-%             Examples: 
+%             Examples:
 %                   % Define ATTRIBUTES using the following syntax
 %                   attributes = {};
 %                   attributes = {'2d'};
@@ -511,11 +506,11 @@ elseif nargin>1
             case 3
                 funcname = varargin{ii};
                 if isempty(funcname); funcname = ''; end
-                if isnumeric(funcname)&&length(varargin)==3; 
+                if isnumeric(funcname)&&length(varargin)==3;
                     funcname = '';
                     argindex = varargin{ii};
                     if isempty(argindex)
-                        argindex = []; 
+                        argindex = [];
                     else
                         validateattributes(argindex,{'numeric'},{'positive','integer','numel',1},'INPUTCHECK','ARGINDEX',3);
                     end
@@ -528,7 +523,7 @@ elseif nargin>1
             case 5
                 argindex = varargin{ii};
                 if isempty(argindex)
-                    argindex = []; 
+                    argindex = [];
                 else
                     validateattributes(argindex,{'numeric'},{'positive','integer','numel',1},'INPUTCHECK','ARGINDEX',6);
                 end
@@ -553,7 +548,7 @@ end
 if isempty(varname); varnameIC = '';
 else varnameIC = [varname,',',' '];
 end
-    
+
 
 %% Process
 % Check for custom CLASSES
